@@ -1,35 +1,24 @@
-const { ApolloServer, gql } = require('apollo-server')
-const data = {
-  places: [{
-    name: 'Ica Maxi',
-    location: {
-      lat: 15.023467,
-      lon: 12.023467
-    }
-  },{
-    name: 'Kalmar bibilotek',
-    location: {
-      lat: 15.022467,
-      lon: 12.021467
-    }
-  },{
-    name: 'Apoteket',
-    location: {
-      lat: 15.123467,
-      lon: 12.223467
-    }
-  }]
-}
+const { ApolloServer, gql } = require('apollo-server');
+const resolverImplementations = require('./resolvers');
+
+require('dotenv').config();
 
 const typeDefs = `
   type Location {
     lat: Float
-    lon: Float
+    lng: Float
   }
   
   type Place {
+    id: String
     name: String
     location: Location
+    image: String
+    icon: String
+    rating: Float
+    address: String
+    phone_number: String
+    categories: [String]
   }
   
   type User {
@@ -38,15 +27,17 @@ const typeDefs = `
   }
   
   type Query {
-    places: [Place]
+    places(name: String, locationbias: String, fields: String): [Place]
+    place(id: String): Place
   }
-`
+`;
 
 const resolvers = {
   Query: {
-    places: () => data.places
+    places: resolverImplementations.places,
+    place: resolverImplementations.place,
   }
-}
+};
 
 const server = new ApolloServer({ typeDefs, resolvers });
 server.listen().then(({ url }) => {
