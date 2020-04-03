@@ -15,5 +15,9 @@
   "bugs": {
     "url": "https://github.com/goa-codebet/flockerty-api/issues"
   },
-  "homepage": "https://github.com/goa-codebet/flockerty-api#readme"
+  "homepage": "https://github.com/goa-codebet/flockerty-api#readme",
+  "dependencies": {
+    "apollo-server": "^2.11.0",
+    "graphql": "^15.0.0"
+  }
 }
