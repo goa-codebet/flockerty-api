@@ -1,9 +1,10 @@
 const placesApi = require('./places');
+const storeApi = require('./store');
 const { get } = require('lodash')
 
 const placeMap = item => ({
   name: item.name,
-  id: item.place_id,
+  place_id: item.place_id,
   icon: item.icon,
   photo: placesApi.photoUrl({ photo_reference: get('photos[0].photo_reference', item) }),
   location: {
@@ -39,7 +40,7 @@ const nearby = async (parent, args) => {
 
 const place = async (parent, args) => {
   const res = await placesApi.details({
-    place_id: args.id,
+    place_id: args.place_id,
     fields: args.fields,
   });
   
@@ -49,8 +50,73 @@ const place = async (parent, args) => {
   return placeMap(res.data.result);
 }
 
+const latest = async (parent, args) => {
+  const { uuid } = args;
+  const start = Math.floor(Date.UTC()/1000)
+  
+  const slots = storeApi.getSlots({ uuid });
+  const places = []
+  // Get place for all slots
+  for (const item of slots) {
+    const place = await placesApi.details({ place_id: item.place_id });
+    places.push(place.data.result)
+  }
+  
+  return places.map(placeMap)
+};
+
+const favorites = async (parent, args) => {
+  const { uuid } = args;
+  const start = Math.floor(Date.UTC()/1000)
+  const favorites = storeApi.getFavorites({ uuid });
+  const places = []
+  // Get place for all slots
+  for (const item of favorites) {
+    const place = await placesApi.details({ place_id: item.place_id });
+    places.push(place.data.result)
+  }
+  
+  return places.map(placeMap)
+};
+
+
+
+const setSlot = (parent, args) => {
+  const { uuid, place_id, slotStart, slotEnd } = args;
+  
+  storeApi.setSlot({ uuid, place_id, slot: {
+    start: slotStart,
+    end: slotEnd,
+  } });
+  
+  return !!storeApi.getSlots({ uuid });
+};
+
+const setFavorite = (parent, args) => {
+  const { uuid, place_id } = args;
+  
+  storeApi.setFavorite({ uuid, place_id });
+  return !!storeApi.getFavorites({ uuid });
+};
+
+const removeFavorite = (parent, args) => {
+  const { uuid, place_id } = args;
+  
+  storeApi.removeFavorite({ uuid, place_id });
+  return !!storeApi.getFavorites({ uuid });
+};
+
 module.exports = {
-  places,
-  nearby,
-  place,
+  Query: {
+    places,
+    nearby,
+    place,
+    latest,
+    favorites,
+  },
+  Mutation: {
+    setSlot,
+    setFavorite,
+    removeFavorite,
+  },
 }
