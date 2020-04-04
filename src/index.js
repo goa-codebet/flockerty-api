@@ -26,6 +26,7 @@ const typeDefs = `
     address: String
     phone_number: String
     categories: [String]
+    heatmap: [Int]
   }
   
   type Query {

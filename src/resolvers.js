@@ -1,5 +1,6 @@
 const placesApi = require('./places');
 const storeApi = require('./store');
+const { getHeatmap } = require('./utils')
 const { get } = require('lodash')
 
 const placeMap = item => ({
@@ -7,6 +8,7 @@ const placeMap = item => ({
   place_id: item.place_id,
   icon: item.icon,
   photo: placesApi.photoUrl({ photo_reference: get('photos[0].photo_reference', item) }),
+  heatmap: getHeatmap({data: storeApi.getSlots({ place_id: item.place_id }), start: Math.floor(Date.now()/1000)}),
   location: {
     lat: item.geometry.location.lat,
     lng: item.geometry.location.lng,
@@ -52,7 +54,7 @@ const place = async (parent, args) => {
 
 const latest = async (parent, args) => {
   const { uuid } = args;
-  const start = Math.floor(Date.UTC()/1000)
+  const start = Math.floor(Date.now()/1000)
   
   const slots = storeApi.getSlots({ uuid });
   const places = []
@@ -67,7 +69,6 @@ const latest = async (parent, args) => {
 
 const favorites = async (parent, args) => {
   const { uuid } = args;
-  const start = Math.floor(Date.UTC()/1000)
   const favorites = storeApi.getFavorites({ uuid });
   const places = []
   // Get place for all slots
@@ -78,8 +79,6 @@ const favorites = async (parent, args) => {
   
   return places.map(placeMap)
 };
-
-
 
 const setSlot = (parent, args) => {
   const { uuid, place_id, slotStart, slotEnd } = args;
