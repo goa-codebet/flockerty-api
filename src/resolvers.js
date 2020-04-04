@@ -3,6 +3,7 @@ const { get } = require('lodash')
 
 const placeMap = item => ({
   name: item.name,
+  id: item.place_id,
   icon: item.icon,
   photo: placesApi.photoUrl({ photo_reference: get('photos[0].photo_reference', item) }),
   location: {
