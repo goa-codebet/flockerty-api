@@ -1,8 +1,10 @@
 const qs = require('query-string')
 const { setup } = require('axios-cache-adapter')
 
+require('dotenv').config();
+
 const http = setup({
-  baseURL: 'https://maps.googleapis.com/maps/api/place',
+  baseURL: process.env.PLACES_API || 'https://maps.googleapis.com/maps/api/place',
   cache: {
     maxAge: 15 * 60 * 1000,
     debug: true,
