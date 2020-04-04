@@ -13,7 +13,7 @@ const typeDefs = `
     id: String
     name: String
     location: Location
-    image: String
+    photo: String
     icon: String
     rating: Float
     address: String
@@ -27,16 +27,14 @@ const typeDefs = `
   }
   
   type Query {
+    nearby(location: String, radius: Int, rankby: String, category: String): [Place]
     places(name: String, locationbias: String, fields: String): [Place]
     place(id: String): Place
   }
 `;
 
 const resolvers = {
-  Query: {
-    places: resolverImplementations.places,
-    place: resolverImplementations.place,
-  }
+  Query: resolverImplementations
 };
 
 const server = new ApolloServer({ typeDefs, resolvers });
