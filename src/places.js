@@ -24,10 +24,10 @@ const nearby = async ({ location, radius, type }) => {
   };
   
   const res = await http.get(path + qs.stringify(parameters));
-  if (!res.data.result)
+  if (!res.data.results)
     return []
     
-  return res.data.result;
+  return res.data.results;
 }
 
 const search = async ({ input, fields, locationbias, inputtype = 'textquery' }) => {
@@ -62,14 +62,13 @@ const details = async ({ place_id, fields }) => {
   return res.data.result;
 }
 
-const photoUrl = ({ photo_reference, maxwidth, maxHeight }) => {
-  
+const photoUrl = async ({ photo_reference, maxwidth = 400, maxHeight }) => {
   if (!photo_reference)
     return null;
   
-  const path = 'https://maps.googleapis.com/maps/api/place/photo?';
+  const path = process.env.PLACES_PHOTO_URL || 'https://maps.googleapis.com/maps/api/place/photo?';
   const parameters = {
-    key: process.env.PLACES_KEY,
+    // Key is provided by azure
     photoreference: photo_reference,
     maxwidth,
     maxHeight,
