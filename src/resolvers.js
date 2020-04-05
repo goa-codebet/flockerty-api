@@ -3,6 +3,7 @@ const storeApi = require('./store');
 const { getHeatmap } = require('./utils')
 const { get } = require('lodash')
 
+const defaultFields = 'geometry,name,icon,photos,place_id,types'
 const placeMap = item => ({
   name: item.name,
   place_id: item.place_id,
@@ -18,38 +19,35 @@ const placeMap = item => ({
   categories: item.types,
 })
 
-const defaultFields = 'geometry,name,icon,photos,place_id,types'
+/*** Queries ***/
 
 const places = async (parent, args) => {
-  const res = await placesApi.search({
+  const places = await placesApi.search({
     input: args.name,
     fields: args.fields || defaultFields,
   });
   
-  return res.data.candidates.map(placeMap);
+  return places.map(placeMap);
 }
 
 const nearby = async (parent, args) => {
-  const res = await placesApi.nearby({
+  const places = await placesApi.nearby({
     location: args.location,
     radius: args.radius,
     rankby: args.rankby,
     type: args.category,
   });
   
-  return res.data.results.map(placeMap);
+  return places.map(placeMap);
 }
 
 const place = async (parent, args) => {
-  const res = await placesApi.details({
+  const place = await placesApi.details({
     place_id: args.place_id,
     fields: args.fields,
   });
   
-  if (!res.data.result)
-    return {};
-    
-  return placeMap(res.data.result);
+  return placeMap(place);
 }
 
 const latest = async (parent, args) => {
@@ -61,7 +59,7 @@ const latest = async (parent, args) => {
   // Get place for all slots
   for (const item of slots) {
     const place = await placesApi.details({ place_id: item.place_id });
-    places.push(place.data.result)
+    places.push(place)
   }
   
   return places.map(placeMap)
@@ -74,11 +72,13 @@ const favorites = async (parent, args) => {
   // Get place for all slots
   for (const item of favorites) {
     const place = await placesApi.details({ place_id: item.place_id });
-    places.push(place.data.result)
+    places.push(place)
   }
   
   return places.map(placeMap)
 };
+
+/*** Mutations ***/
 
 const setSlot = (parent, args) => {
   const { uuid, place_id, slotStart, slotEnd } = args;
@@ -88,21 +88,21 @@ const setSlot = (parent, args) => {
     end: slotEnd,
   } });
   
-  return !!storeApi.getSlots({ uuid });
+  return place(parent, args);
 };
 
 const setFavorite = (parent, args) => {
   const { uuid, place_id } = args;
   
   storeApi.setFavorite({ uuid, place_id });
-  return !!storeApi.getFavorites({ uuid });
+  return favorites(parent, args);
 };
 
 const removeFavorite = (parent, args) => {
   const { uuid, place_id } = args;
   
   storeApi.removeFavorite({ uuid, place_id });
-  return !!storeApi.getFavorites({ uuid });
+  return favorites(parent, args);
 };
 
 module.exports = {

@@ -1,6 +1,6 @@
 module.exports = `
   type Slot {
-    place: Place
+    place_id: String
     uuid: String
     start: Int
     end: Int
@@ -34,8 +34,8 @@ module.exports = `
   }
   
   type Mutation {
-    setFavorite(uuid: String, place_id: String): Boolean
-    removeFavorite(uuid: String, place_id: String): Boolean
-    setSlot(uuid: String, place_id: String, slotStart: Int, slotEnd: Int): Boolean
+    setFavorite(uuid: String, place_id: String): [Place]
+    removeFavorite(uuid: String, place_id: String): [Place]
+    setSlot(uuid: String, place_id: String, slotStart: Int, slotEnd: Int): Slot
   }
 `;

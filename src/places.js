@@ -14,7 +14,7 @@ const http = setup({
   }
 });
 
-const nearby = ({ location, radius, type }) => {
+const nearby = async ({ location, radius, type }) => {
   const path = '/nearbysearch/json?';
   const parameters = {
     key: process.env.PLACES_KEY,
@@ -23,10 +23,14 @@ const nearby = ({ location, radius, type }) => {
     type,
   };
   
-  return http.get(path + qs.stringify(parameters));
+  const res = await http.get(path + qs.stringify(parameters));
+  if (!res.data.result)
+    return []
+    
+  return res.data.result;
 }
 
-const search = ({ input, fields, locationbias, inputtype = 'textquery' }) => {
+const search = async ({ input, fields, locationbias, inputtype = 'textquery' }) => {
   const path = '/findplacefromtext/json?';
   const parameters = {
     key: process.env.PLACES_KEY,
@@ -36,10 +40,14 @@ const search = ({ input, fields, locationbias, inputtype = 'textquery' }) => {
     locationbias,
   };
   
-  return http.get(path + qs.stringify(parameters));
+  const res = await http.get(path + qs.stringify(parameters));
+  if (!res.data.candidates)
+    return []
+    
+  return res.data.candidates;
 }
 
-const details = ({ place_id, fields }) => {
+const details = async ({ place_id, fields }) => {
   const path = '/details/json?';
   const parameters = {
     key: process.env.PLACES_KEY,
@@ -47,7 +55,11 @@ const details = ({ place_id, fields }) => {
     fields,
   };
   
-  return http.get(path + qs.stringify(parameters));
+  const res = await http.get(path + qs.stringify(parameters));
+  if (!res.data.result)
+    return {};
+    
+  return res.data.result;
 }
 
 const photoUrl = ({ photo_reference, maxwidth, maxHeight }) => {
