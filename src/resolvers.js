@@ -3,17 +3,23 @@ const storeApi = require('./store');
 const { getHeatmap } = require('./utils')
 const { get } = require('lodash')
 
+const getAddressComponent = (components, component) => {
+  const res = components.find(c => c.types.includes(component))
+  return res ? res.long_name : null
+}
+
 const defaultFields = 'geometry,name,icon,photos,place_id,types'
 const placeMap = item => ({
   name: item.name,
   place_id: item.place_id,
   icon: item.icon,
-  photo: placesApi.photoUrl({ photo_reference: get('photos[0].photo_reference', item) }),
+  photo: placesApi.photoUrl({ photo_reference: get(item,'photos[0].photo_reference') }),
   heatmap: getHeatmap({data: storeApi.getSlots({ place_id: item.place_id }), start: Math.floor(Date.now()/1000)}),
   location: {
     lat: item.geometry.location.lat,
     lng: item.geometry.location.lng,
   },
+  city: item.address_components && getAddressComponent(item.address_components, 'postal_town'),
   address: item.formatted_address,
   phone_number: item.international_phone_number,
   categories: item.types,

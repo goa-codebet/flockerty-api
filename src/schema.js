@@ -6,6 +6,11 @@ module.exports = `
     end: Int
   }
   
+  type HeatmapItem {
+    time: String
+    value: Int
+  }
+  
   type Location {
     lat: Float
     lng: Float
@@ -18,10 +23,11 @@ module.exports = `
     photo: String
     icon: String
     rating: Float
+    city: String
     address: String
     phone_number: String
     categories: [String]
-    heatmap: [Int]
+    heatmap: [HeatmapItem]
   }
   
   type Query {
