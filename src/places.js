@@ -68,13 +68,18 @@ const photoUrl = async ({ photo_reference, maxwidth = 400, maxHeight }) => {
   
   const path = process.env.PLACES_PHOTO_URL || 'https://maps.googleapis.com/maps/api/place/photo?';
   const parameters = {
-    // Key is provided by azure
+    key: process.env.PLACES_KEY,
     photoreference: photo_reference,
     maxwidth,
     maxHeight,
   };
   
-  return path + qs.stringify(parameters);
+  const res = await http.head(path + qs.stringify(parameters), {
+    maxRedirects: 0,
+    validateStatus: s => s < 399
+  });
+  
+  return res.headers.location
 }
 
 module.exports = {
