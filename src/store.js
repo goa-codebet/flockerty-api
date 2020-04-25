@@ -1,50 +1,64 @@
-const store = {
-  favorites: [],
-  slots: [],
+const storage = require('node-persist');
+
+storage.init();
+
+const getFavorites = async ({ uuid }) => {
+  const res = await storage.getItem('f'+uuid) || [];
+  return res
 }
 
-const getFavorites = ({ uuid }) => {
-  return store.favorites.filter(i => i.uuid === uuid)
+const setFavorite = async ({ uuid, place_id }) => {
+  const favorites = await getFavorites({ uuid });
+  
+  favorites.push(place_id);
+  const distinct = favorites.filter((value, index, self) => self.indexOf(value) === index);
+  return await storage.setItem('f'+uuid, distinct);
 }
 
-const setFavorite = ({ uuid, place_id }) => {
-  return store.favorites.push({
-    uuid,
-    place_id,
-  })
+const removeFavorite = async ({ uuid, place_id }) => {
+  const favorites = getFavorites({ uuid });
+  
+  const item = favorites.find(f => f.place_id === place_id);
+  delete store.favorites[store.favorites.indexOf(item)];
+  
+  const distinct = favorites.filter((value, index, self) => self.indexOf(value) === index);
+  return await storage.setItem('f'+uuid, distinct);
 }
 
-const removeFavorite = ({ uuid, place_id }) => {
-  const item = store.favorites.find(f => f.uuid === uuid && f.place_id === place_id)
-  delete store.favorites[store.favorites.indexOf(item)]
-  return store.favorites
+const getSlots = async ({ place_id, uuid, slot }) => {
+  const slots = await storage.getItem('slots') || [];
+  
+  if (place_id && slot && slot.start && slot.end)
+    return slots.filter(i => i.place_id === place_id && i.slot.start >= slot.start && i.slot.end <= slot.end) || [];
+  else if (place_id && slot && slot.start)
+    return slots.filter(i => i.place_id === place_id && i.slot.start >= slot.start) || [];
+  else if (place_id && slot && slot.end)
+    return slots.filter(i => i.place_id === place_id && i.slot.end <= slot.end) || [];
+  else if (place_id && uuid)
+    return slots.filter(i => i.place_id === place_id && i.uuid === uuid) || [];
+  else if (place_id)
+    return slots.filter(i => i.place_id === place_id) || [];
+  else if (uuid)
+    return slots.filter(i => i.uuid === uuid) || [];
+  else
+    return slots || [];
 }
 
-const setSlot = ({ uuid, place_id, slot }) => {
+const setSlot = async ({ uuid, place_id, slot }) => {
+  const slots = await getSlots({});
   const sum = uuid+place_id+slot.start+slot.end;
   
-  if (store.slots.find(x => x.sum === sum))
+  if (slots.find(x => x.sum === sum))
     return null;
     
-  return store.slots.push({
+  slots.push({
     sum,
     uuid,
     place_id,
     slot,
   });
-}
-
-const getSlots = ({ place_id, uuid, slot }) => {
-  if (place_id && slot && slot.start && slot.end)
-    return store.slots.filter(i => i.place_id === place_id && i.slot.start >= slot.start && i.slot.end <= slot.end)
-  else if (place_id && slot && slot.start)
-    return store.slots.filter(i => i.place_id === place_id && i.slot.start >= slot.start)
-  else if (place_id && slot && slot.end)
-    return store.slots.filter(i => i.place_id === place_id && i.slot.end <= slot.end)
-  else if (place_id)
-    return store.slots.filter(i => i.place_id === place_id)
-  else if (uuid)
-    return store.slots.filter(i => i.uuid === uuid)
+  
+  return await storage.setItem('slots', slots);
 }
 
 module.exports = {

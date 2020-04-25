@@ -9,21 +9,24 @@ const getAddressComponent = (components, component) => {
 }
 
 const defaultFields = 'geometry,name,icon,photos,place_id,types'
-const placeMap = item => ({
-  name: item.name,
-  place_id: item.place_id,
-  icon: item.icon,
-  photo: placesApi.photoUrl({ photo_reference: get(item,'photos[0].photo_reference') }),
-  heatmap: getHeatmap({data: storeApi.getSlots({ place_id: item.place_id }), start: Math.floor(Date.now()/1000)}),
-  location: {
-    lat: item.geometry.location.lat,
-    lng: item.geometry.location.lng,
-  },
-  city: item.address_components && getAddressComponent(item.address_components, 'postal_town'),
-  address: item.formatted_address,
-  phone_number: item.international_phone_number,
-  categories: item.types,
-})
+const placeMap = async item => {
+  const data = await storeApi.getSlots({ place_id: item.place_id });
+  return {
+    name: item.name,
+    place_id: item.place_id,
+    icon: item.icon,
+    photo: placesApi.photoUrl({ photo_reference: get(item,'photos[0].photo_reference') }),
+    heatmap: getHeatmap({data, start: Math.floor(Date.now()/1000)}),
+    location: {
+      lat: item.geometry.location.lat,
+      lng: item.geometry.location.lng,
+    },
+    city: item.address_components && getAddressComponent(item.address_components, 'postal_town'),
+    address: item.formatted_address,
+    phone_number: item.international_phone_number,
+    categories: item.types,
+  }
+}
 
 /*** Queries ***/
 
@@ -33,7 +36,7 @@ const places = async (parent, args) => {
     fields: args.fields || defaultFields,
   });
   
-  return places.map(placeMap);
+  return Promise.all(places.map(placeMap));
 }
 
 const nearby = async (parent, args) => {
@@ -44,7 +47,7 @@ const nearby = async (parent, args) => {
     type: args.category,
   });
   
-  return places.map(placeMap);
+  return Promise.all(places.map(placeMap));
 }
 
 const place = async (parent, args) => {
@@ -53,14 +56,14 @@ const place = async (parent, args) => {
     fields: args.fields,
   });
   
-  return placeMap(place);
+  return await placeMap(place);
 }
 
 const latest = async (parent, args) => {
   const { uuid } = args;
   const start = Math.floor(Date.now()/1000)
   
-  const slots = storeApi.getSlots({ uuid });
+  const slots = await storeApi.getSlots({ uuid });
   const places = []
   // Get place for all slots
   for (const item of slots) {
@@ -68,28 +71,28 @@ const latest = async (parent, args) => {
     places.push(place)
   }
   
-  return places.map(placeMap)
+  return Promise.all(places.map(placeMap));
 };
 
 const favorites = async (parent, args) => {
   const { uuid } = args;
-  const favorites = storeApi.getFavorites({ uuid });
+  const favorites = await storeApi.getFavorites({ uuid });
   const places = []
   // Get place for all slots
   for (const item of favorites) {
-    const place = await placesApi.details({ place_id: item.place_id });
+    const place = await placesApi.details({ place_id: item });
     places.push(place)
   }
   
-  return places.map(placeMap)
+  return Promise.all(places.map(placeMap));
 };
 
 /*** Mutations ***/
 
-const setSlot = (parent, args) => {
+const setSlot = async (parent, args) => {
   const { uuid, place_id, slotStart, slotEnd } = args;
   
-  storeApi.setSlot({ uuid, place_id, slot: {
+  await storeApi.setSlot({ uuid, place_id, slot: {
     start: slotStart,
     end: slotEnd,
   } });
