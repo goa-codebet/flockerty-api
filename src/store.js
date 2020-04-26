@@ -1,6 +1,8 @@
 const storage = require('node-persist');
 
-storage.init();
+storage.init({
+  dir: process.env.NODE_PERSIST_DIR || '.node-persist/storage'
+});
 
 const getFavorites = async ({ uuid }) => {
   const res = await storage.getItem('f'+uuid) || [];
