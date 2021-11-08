@@ -18,7 +18,7 @@
   },
   "homepage": "https://github.com/goa-codebet/flockerty-api#readme",
   "dependencies": {
-    "apollo-server": "^2.11.0",
+    "apollo-server": "^2.25.3",
     "axios": "^0.19.2",
     "axios-cache-adapter": "^2.5.0",
     "dotenv": "^8.2.0",
